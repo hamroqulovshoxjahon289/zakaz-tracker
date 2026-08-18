@@ -1,0 +1,16 @@
+{
+  "name": "zakaz-tracker",
+  "version": "1.0.0",
+  "description": "Zakazlarni boshqarish va TV monitoring tizimi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "socket.io": "^4.7.5",
+    "bcryptjs": "^2.4.3",
+    "nanoid": "^3.3.7"
+  }
+}

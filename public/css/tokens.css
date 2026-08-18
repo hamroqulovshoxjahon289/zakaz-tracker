@@ -1,0 +1,112 @@
+/* ===== Zakaz Tracker — Design Tokens =====
+   Mavzu: yuk tashish / ombor (logistics dock) — kechqurun ombordagi
+   navigatsion belgilar kabi yorqin, uzoqdan ko'rinadigan kontrast.
+*/
+:root {
+  --bg-0: #0a0e17;         /* eng tub fon */
+  --bg-1: #10151f;         /* panel foni */
+  --bg-2: #171d2b;         /* karta foni */
+  --bg-3: #1f2636;         /* hover / ajratilgan */
+  --line: #2a3244;         /* nozik chiziqlar */
+
+  --text-hi: #f3f5fa;      /* asosiy matn */
+  --text-mid: #a7b1c7;     /* ikkinchi darajali matn */
+  --text-low: #5c6785;     /* eng past darajali matn */
+
+  --amber: #ff8a2b;        /* ogohlantiruvchi / yuklanmoqda */
+  --amber-dim: #4a331a;
+  --green: #2fd67a;        /* jo'natildi (yakuniy) */
+  --green-dim: #16382a;
+  --blue: #4d8dff;         /* kutmoqda */
+  --blue-dim: #1c2c4a;
+  --violet: #b073ff;       /* tayyor */
+  --violet-dim: #33234a;
+  --red: #ff4d5e;          /* xato / o'chirish */
+  --red-dim: #4a1c22;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
+
+  --shadow-lift: 0 8px 24px rgba(0,0,0,0.35);
+}
+
+/* Ochiq (oq) rejim — uzoqdan yorug' xonada ko'rish uchun */
+[data-theme="light"] {
+  --bg-0: #f4f5f9;
+  --bg-1: #ffffff;
+  --bg-2: #eef0f6;
+  --bg-3: #e3e6f0;
+  --line: #d8dce6;
+
+  --text-hi: #13161f;
+  --text-mid: #495066;
+  --text-low: #838ba1;
+
+  --amber: #d9630f;
+  --amber-dim: #ffe3c7;
+  --green: #128a45;
+  --green-dim: #d7f5e3;
+  --blue: #2255d0;
+  --blue-dim: #dbe6ff;
+  --violet: #8b2fd6;
+  --violet-dim: #ecdcfa;
+  --red: #d02b3a;
+  --red-dim: #ffdde0;
+
+  --shadow-lift: 0 8px 24px rgba(20,25,45,0.10);
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg-0);
+  color: var(--text-hi);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+button { font-family: inherit; }
+::selection { background: var(--amber); color: #1a1006; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.status-kutmoqda { background: var(--blue-dim); color: var(--blue); }
+.status-tayyor { background: var(--violet-dim); color: var(--violet); }
+.status-yuklanmoqda {
+  background: var(--amber-dim); color: var(--amber);
+  position: relative; overflow: hidden;
+}
+.status-yuklanmoqda::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255,138,43,0.18) 0px, rgba(255,138,43,0.18) 10px,
+    transparent 10px, transparent 20px
+  );
+  animation: stripe-move 1.4s linear infinite;
+}
+@keyframes stripe-move {
+  from { background-position: 0 0; }
+  to { background-position: 56px 0; }
+}
+.status-jonatildi { background: var(--green-dim); color: var(--green); }
+
+@media (prefers-reduced-motion: reduce) {
+  .status-yuklanmoqda::before { animation: none; }
+}

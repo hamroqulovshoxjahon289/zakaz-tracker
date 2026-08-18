@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Boshqaruv paneli — Zakaz Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/tokens.css">
+<style>
+  body { min-height: 100vh; }
+  .app { display: none; min-height: 100vh; flex-direction: column; }
+  .app.ready { display: flex; }
+
+  header.top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px; border-bottom: 1px solid var(--line); background: var(--bg-1);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .mark { width: 36px; height: 36px; border-radius: 9px; background: linear-gradient(135deg, var(--amber), #ff5f2b);
+    display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; font-size: 18px; color: #1a1006; }
+  .brand-title { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
+  .top-right { display: flex; align-items: center; gap: 14px; }
+  .who { text-align: right; font-size: 13px; color: var(--text-mid); }
+  .who b { color: var(--text-hi); font-size: 14px; display: block; }
+  .btn {
+    padding: 9px 16px; border-radius: var(--radius-md); border: 1px solid var(--line);
+    background: var(--bg-2); color: var(--text-hi); cursor: pointer; font-size: 14px; font-weight: 600;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn:hover { background: var(--bg-3); }
+  .btn.primary { background: linear-gradient(135deg, var(--amber), #ff5f2b); color: #1a1006; border: none; }
+  .btn.danger { background: var(--red-dim); color: var(--red); border-color: transparent; }
+  .btn.success { background: var(--green-dim); color: var(--green); border-color: transparent; }
+  .btn.ghost { background: transparent; }
+  .btn.small { padding: 6px 10px; font-size: 12px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .impersonate-banner {
+    background: var(--amber-dim); color: var(--amber); text-align: center;
+    padding: 8px; font-size: 13px; font-weight: 600; display: none;
+  }
+
+  nav.tabs { display: flex; gap: 4px; padding: 14px 28px 0; border-bottom: 1px solid var(--line); background: var(--bg-0); flex-wrap: wrap; }
+  nav.tabs button {
+    background: none; border: none; color: var(--text-mid); padding: 10px 18px;
+    font-family: var(--font-display); font-size: 16px; font-weight: 600; cursor: pointer;
+    border-bottom: 2px solid transparent; letter-spacing: 0.02em;
+  }
+  nav.tabs button.active { color: var(--text-hi); border-bottom-color: var(--amber); }
+  .tab-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+    background: var(--red); color: #2a0007; font-size: 11px; font-weight: 800; margin-left: 4px;
+  }
+
+  main { flex: 1; padding: 24px 28px 60px; max-width: 1280px; width: 100%; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .day-bar {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 16px 22px; margin-bottom: 20px;
+  }
+  .day-status { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-low); }
+  .dot.on { background: var(--green); box-shadow: 0 0 0 4px var(--green-dim); }
+
+  .card { background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; }
+  .card h3 { font-family: var(--font-display); font-size: 18px; margin: 0 0 14px; font-weight: 600; }
+  .card + .card { margin-top: 18px; }
+
+  /* ---- Order creation form ---- */
+  .order-form { display: grid; grid-template-columns: 1fr 1fr 1.2fr 140px auto; gap: 10px; margin-bottom: 10px; }
+  @media (max-width: 900px) { .order-form { grid-template-columns: 1fr; } }
+  .order-form input, .order-form select {
+    padding: 11px 12px; border-radius: var(--radius-md); border: 1px solid var(--line);
+    background: var(--bg-2); color: var(--text-hi); font-size: 14px; outline: none;
+  }
+  .order-form input:focus, .order-form select:focus { border-color: var(--amber); }
+
+  /* ---- Line filter chips ---- */
+  .line-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 16px; }
+  .chip {
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2);
+    color: var(--text-mid); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-display); letter-spacing: 0.02em;
+  }
+  .chip.active { background: var(--amber-dim); color: var(--amber); border-color: transparent; }
+
+  /* ---- Station groups within orders panel ---- */
+  .line-block { margin-bottom: 26px; }
+  .line-block-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .line-block-head h4 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin: 0; }
+  .line-block-head .group-tag { font-size: 11px; color: var(--text-low); background: var(--bg-2); padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .station-block { margin-bottom: 14px; padding-left: 4px; }
+  .station-title { font-size: 13px; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .station-title .count { font-family: var(--font-mono); color: var(--text-low); font-weight: 400; }
+
+  .order-row {
+    display: grid; grid-template-columns: 32px 1fr 130px 150px 150px auto auto; gap: 10px; align-items: start;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px;
+  }
+  @media (max-width: 1000px) { .order-row { grid-template-columns: 1fr; } }
+  .order-row .prio-num { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: var(--text-low); padding-top: 8px; text-align: center; }
+  .order-fields { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .order-fields input.num-input {
+    font-family: var(--font-mono); font-weight: 700; font-size: 15px; padding: 7px 9px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--bg-1); color: var(--text-hi); outline: none; width: 100%;
+  }
+  .order-fields textarea.note-input {
+    font-family: inherit; font-size: 13px; padding: 6px 9px; border-radius: 6px; resize: vertical; min-height: 32px;
+    border: 1px solid var(--line); background: var(--bg-1); color: var(--text-mid); outline: none; width: 100%; white-space: pre-wrap; word-break: break-word;
+  }
+  .order-row input.time-input, .order-row select {
+    padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg-1);
+    color: var(--text-hi); font-size: 13px; outline: none; width: 100%;
+  }
+  .field-label { font-size: 10px; color: var(--text-low); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
+  .order-actions { display: flex; flex-direction: column; gap: 6px; }
+  .empty-hint { color: var(--text-low); text-align: center; padding: 20px 10px; font-size: 14px; }
+
+  .done-section { margin-top: 26px; }
+  .done-toggle { color: var(--text-mid); font-size: 13px; cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0; }
+  .done-list { margin-top: 12px; display: none; flex-direction: column; gap: 6px; }
+  .done-list.show { display: flex; }
+  .done-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 9px 14px; font-size: 13px; color: var(--text-mid); }
+  .done-row b { color: var(--text-hi); font-family: var(--font-mono); }
+
+  /* ---- Lines management panel ---- */
+  .line-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 10px; }
+  @media (max-width: 900px) { .line-form { grid-template-columns: 1fr; } }
+  .line-form input, .line-form select {
+    padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--line);
+    background: var(--bg-2); color: var(--text-hi); font-size: 14px; outline: none;
+  }
+  .line-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 12px; }
+  .line-card-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .line-card-head .name { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+  .line-meta-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 12px; align-items: center; }
+  @media (max-width: 900px) { .line-meta-row { grid-template-columns: 1fr; } }
+  .line-meta-row label { font-size: 11px; color: var(--text-low); text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .line-meta-row input, .line-meta-row select {
+    padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg-1); color: var(--text-hi); font-size: 13px; width: 100%;
+  }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-mid); padding-top: 18px; }
+  .stations-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .station-pill { display: flex; align-items: center; gap: 6px; background: var(--bg-1); border: 1px solid var(--line); border-radius: 999px; padding: 6px 6px 6px 12px; font-size: 13px; }
+  .station-pill button { background: none; border: none; color: var(--red); cursor: pointer; font-size: 13px; padding: 2px 6px; }
+  .add-station-inline { display: flex; gap: 6px; }
+  .add-station-inline input { padding: 7px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-1); color: var(--text-hi); font-size: 13px; width: 140px; }
+
+  /* ---- Complaints ---- */
+  .complaint-form { display: flex; flex-direction: column; gap: 10px; }
+  .complaint-form textarea {
+    width: 100%; min-height: 80px; padding: 12px; border-radius: var(--radius-md);
+    border: 1px solid var(--line); background: var(--bg-2); color: var(--text-hi);
+    font-family: inherit; font-size: 14px; resize: vertical; outline: none;
+  }
+  .complaint-form textarea:focus { border-color: var(--amber); }
+  .complaint-form button { align-self: flex-end; }
+  .complaints-list { display: flex; flex-direction: column; gap: 10px; }
+  .complaint-item {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md);
+    padding: 14px 16px; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  }
+  .complaint-item.resolved { opacity: 0.55; }
+  .complaint-body { flex: 1; min-width: 220px; }
+  .complaint-meta { font-size: 12px; color: var(--text-low); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .complaint-text { font-size: 14px; line-height: 1.5; }
+  .complaint-actions { display: flex; align-items: flex-start; gap: 8px; }
+
+  /* ---- Users panel ---- */
+  .users-list { display: flex; flex-direction: column; gap: 10px; }
+  .user-row { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 16px; }
+  .user-row-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+  .user-meta b { display: block; font-size: 15px; }
+  .user-meta span { color: var(--text-mid); font-size: 13px; }
+  .role-pill { font-size: 11px; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
+  .role-pill.admin { background: var(--amber-dim); color: var(--amber); }
+  .role-pill.xodim { background: var(--blue-dim); color: var(--blue); }
+  .station-access-row { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line); margin-top: 8px; }
+  .station-checkbox { display: flex; align-items: center; gap: 5px; background: var(--bg-1); border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; font-size: 12px; cursor: pointer; color: var(--text-mid); }
+  .station-checkbox input { margin: 0; }
+  .station-checkbox.checked { color: var(--amber); border-color: var(--amber); background: var(--amber-dim); }
+  .new-user-form { display: grid; grid-template-columns: 1fr 1fr 1fr 130px auto; gap: 10px; margin-bottom: 14px; }
+  @media (max-width: 900px) { .new-user-form { grid-template-columns: 1fr; } }
+  .new-user-form input, .new-user-form select { padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--bg-2); color: var(--text-hi); font-size: 14px; }
+  .new-user-stations { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--bg-3); border: 1px solid var(--line); padding: 12px 20px; border-radius: var(--radius-md);
+    font-size: 14px; z-index: 100; display: none; box-shadow: var(--shadow-lift);
+  }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  .loading-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; color: var(--text-mid); }
+
+  .tv-links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .tv-links a { font-size: 13px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text-mid); text-decoration: none; }
+  .tv-links a:hover { color: var(--text-hi); border-color: var(--text-low); }
+</style>
+</head>
+<body>
+  <div class="loading-screen" id="loading-screen">Yuklanmoqda...</div>
+
+  <div class="app" id="app">
+    <div class="impersonate-banner" id="impersonate-banner">
+      Siz boshqa foydalanuvchi nomidan kirgansiz — <a href="#" id="stop-impersonate" style="color:inherit; text-decoration:underline;">o'zingizga qaytish</a>
+    </div>
+    <header class="top">
+      <div class="brand"><div class="mark">Z</div><div class="brand-title">Zakaz Tracker</div></div>
+      <div class="top-right">
+        <div class="who"><b id="who-name">—</b><span id="who-role">—</span></div>
+        <button class="btn" id="logout-btn">Chiqish</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="orders">Zakazlar</button>
+      <button class="tab-btn" data-tab="lines" id="tab-lines-btn" style="display:none">Liniyalar</button>
+      <button class="tab-btn" data-tab="complaints">Shikoyatlar <span class="tab-badge" id="complaints-badge" style="display:none">0</span></button>
+      <button class="tab-btn" data-tab="users" id="tab-users-btn" style="display:none">Foydalanuvchilar</button>
+    </nav>
+
+    <main>
+      <!-- ORDERS PANEL -->
+      <section class="panel active" id="panel-orders">
+        <div class="day-bar">
+          <div class="day-status"><span class="dot" id="day-dot"></span><span id="day-text">Kun boshlanmagan</span></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn primary" id="start-day-btn">Kunni boshlash</button>
+            <button class="btn danger" id="finish-day-btn" style="display:none">Kunni yakunlash</button>
+          </div>
+        </div>
+
+        <div class="tv-links" id="tv-links"></div>
+
+        <div class="card">
+          <h3>Yangi zakaz kiritish</h3>
+          <form class="order-form" id="order-form">
+            <input name="orderNumber" placeholder="Zakaz raqami / model nomi" required>
+            <input name="time" placeholder="Vaqt (masalan 14:30)">
+            <input name="note" placeholder="Izoh (o'lcham, rang va h.k.)">
+            <select name="lineId" id="order-form-line"></select>
+            <button type="submit" class="btn primary">Qo'shish</button>
+          </form>
+        </div>
+
+        <div class="line-filters" id="line-filters"></div>
+
+        <div id="orders-container"></div>
+        <div class="empty-hint" id="orders-empty" style="display:none">Hali faol zakaz yo'q</div>
+
+        <div class="done-section">
+          <button class="done-toggle" id="done-toggle">Yakunlangan zakazlarni ko'rsatish (<span id="done-count">0</span>)</button>
+          <div class="done-list" id="done-list"></div>
+        </div>
+      </section>
+
+      <!-- LINES PANEL -->
+      <section class="panel" id="panel-lines">
+        <div class="card">
+          <h3>Yangi liniya qo'shish</h3>
+          <p style="color:var(--text-mid); font-size:13px; margin-top:-8px;">
+            Masalan: "Korpus" nomli liniya, guruhi "korpus", ichida Ara → Kromka → Prisadka → Upakovka bosqichlari.
+            Bir xil "guruh" nomidagi liniyalar bitta TV ekranda birga chiqadi.
+          </p>
+          <form class="line-form" id="line-form">
+            <input name="name" placeholder="Liniya nomi (masalan: Korpus)" required>
+            <input name="group" placeholder="TV guruhi (masalan: korpus)" required>
+            <input name="stationNames" placeholder="Bosqichlar, vergul bilan: Ara, Kromka, Upakovka" required>
+            <button type="submit" class="btn primary">Qo'shish</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Mavjud liniyalar</h3>
+          <div id="lines-list"></div>
+        </div>
+      </section>
+
+      <!-- COMPLAINTS PANEL -->
+      <section class="panel" id="panel-complaints">
+        <div class="card">
+          <h3>Shikoyat / muammo yozish</h3>
+          <form class="complaint-form" id="complaint-form">
+            <textarea name="text" placeholder="Muammoni tavsiflab yozing..." required></textarea>
+            <button type="submit" class="btn primary">Yuborish</button>
+          </form>
+        </div>
+        <div class="card">
+          <h3>Barcha shikoyatlar</h3>
+          <div class="complaints-list" id="complaints-list"></div>
+          <div class="empty-hint" id="complaints-empty" style="display:none">Shikoyatlar yo'q</div>
+        </div>
+      </section>
+
+      <!-- USERS PANEL -->
+      <section class="panel" id="panel-users">
+        <div class="card">
+          <h3>Yangi foydalanuvchi qo'shish</h3>
+          <form class="new-user-form" id="new-user-form">
+            <input name="name" placeholder="To'liq ism" required>
+            <input name="username" placeholder="Login" required>
+            <input name="password" placeholder="Parol" required>
+            <select name="role">
+              <option value="xodim">Xodim</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button type="submit" class="btn primary">Qo'shish</button>
+          </form>
+          <div style="font-size:12px; color:var(--text-low); margin-bottom:8px;">Lavozim (qaysi stansiyalarda ishlaydi):</div>
+          <div class="new-user-stations" id="new-user-stations"></div>
+        </div>
+        <div class="card">
+          <h3>Foydalanuvchilar</h3>
+          <div class="users-list" id="users-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

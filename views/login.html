@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Kirish — Zakaz Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/tokens.css">
+<style>
+  body {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(900px 500px at 50% -10%, rgba(255,138,43,0.10), transparent), var(--bg-0);
+    padding: 20px;
+  }
+  .card {
+    width: 100%; max-width: 380px;
+    background: var(--bg-1); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 36px 32px;
+    box-shadow: var(--shadow-lift);
+  }
+  .mark { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--amber), #ff5f2b);
+    display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; font-size: 24px; color: #1a1006; margin-bottom: 18px; }
+  h1 { font-family: var(--font-display); font-size: 26px; margin: 0 0 4px; font-weight: 700; }
+  p.sub { color: var(--text-mid); margin: 0 0 26px; font-size: 14px; }
+  label { display: block; font-size: 13px; color: var(--text-mid); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  input {
+    width: 100%; padding: 12px 14px; border-radius: var(--radius-md);
+    border: 1px solid var(--line); background: var(--bg-2); color: var(--text-hi);
+    font-size: 15px; outline: none; transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--amber); }
+  button {
+    width: 100%; margin-top: 24px; padding: 13px; border: none; border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--amber), #ff5f2b); color: #1a1006;
+    font-weight: 700; font-size: 15px; cursor: pointer; transition: filter 0.15s;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .err { color: var(--red); font-size: 14px; margin-top: 14px; display: none; }
+  .tv-link { display: block; text-align: center; margin-top: 22px; color: var(--text-low); font-size: 13px; text-decoration: none; }
+  .tv-link:hover { color: var(--text-mid); }
+</style>
+</head>
+<body>
+  <form class="card" id="form">
+    <div class="mark">Z</div>
+    <h1>Tizimga kirish</h1>
+    <p class="sub">Admin yoki xodim login-parolingiz bilan kiring</p>
+    <label for="username">Login</label>
+    <input id="username" name="username" autocomplete="username" required>
+    <label for="password">Parol</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <div class="err" id="err"></div>
+    <button type="submit" id="btn">Kirish</button>
+    <a class="tv-link" href="/tv">TV ekranni ochish →</a>
+  </form>
+  <script>
+    const form = document.getElementById('form');
+    const err = document.getElementById('err');
+    const btn = document.getElementById('btn');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Tekshirilmoqda...';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value.trim(),
+            password: document.getElementById('password').value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Xatolik yuz berdi');
+        window.location.href = '/';
+      } catch (ex) {
+        err.textContent = ex.message;
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Kirish';
+      }
+    });
+  </script>
+</body>
+</html>

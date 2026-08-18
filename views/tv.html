@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Zakazlar — Jonli Ekran</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/tokens.css">
+<style>
+  html, body { min-height: 100%; }
+  body {
+    display: flex; flex-direction: column; min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(77,141,255,0.10), transparent),
+      radial-gradient(1000px 500px at 10% 110%, rgba(255,138,43,0.08), transparent),
+      var(--bg-0);
+    transition: background 0.25s;
+  }
+  [data-theme="light"] body {
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(37,99,235,0.06), transparent),
+      radial-gradient(1000px 500px at 10% 110%, rgba(217,99,15,0.06), transparent),
+      var(--bg-0);
+  }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 40px 12px; border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-mark {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--amber), #ff5f2b);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 19px; color: #1a1006;
+  }
+  .brand-title { font-family: var(--font-display); font-weight: 700; font-size: 25px; letter-spacing: 0.02em; }
+  .brand-sub { color: var(--text-mid); font-size: 12.5px; margin-top: -2px; }
+  .header-right { display: flex; align-items: center; gap: 18px; }
+  .theme-toggle {
+    background: var(--bg-2); border: 1px solid var(--line); color: var(--text-mid);
+    border-radius: 999px; padding: 8px 15px; cursor: pointer; font-size: 12.5px; font-weight: 700;
+  }
+  .theme-toggle:hover { color: var(--text-hi); border-color: var(--text-low); }
+  .channel-badge {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 8px 15px;
+    font-family: var(--font-display); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--amber); text-decoration: none;
+  }
+  .clock-wrap { text-align: right; }
+  #clock { font-family: var(--font-mono); font-size: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  #date { color: var(--text-mid); font-size: 12px; text-transform: capitalize; }
+
+  .stats { display: grid; grid-auto-flow: column; gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); }
+  .stat { background: var(--bg-1); padding: 11px 26px; display: flex; align-items: baseline; gap: 9px; }
+  .stat b { font-family: var(--font-display); font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--text-mid); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat.c-blue b { color: var(--blue); }
+  .stat.c-amber b { color: var(--amber); }
+  .stat.c-green b { color: var(--green); }
+  .stat.c-red b { color: var(--red); }
+
+  main { flex: 1; padding: 18px 40px 16px; }
+
+  /* ---- Channel picker (landing) ---- */
+  .channel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 30px; }
+  .channel-tile {
+    background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 28px 26px; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 10px;
+  }
+  .channel-tile:hover { border-color: var(--amber); }
+  .channel-tile .name { font-family: var(--font-display); font-weight: 800; font-size: 28px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .channel-tile .count { font-family: var(--font-mono); color: var(--text-mid); font-size: 15px; }
+  .channel-hint { color: var(--text-low); font-size: 14px; text-align: center; margin-top: 8px; }
+
+  /* ---- Pipeline board ---- */
+  .pipeline-section { margin-bottom: 26px; }
+  .pipeline-title { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .pipeline-title .arrow-to { color: var(--text-low); font-size: 15px; font-weight: 500; text-transform: none; }
+  .pipeline-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+  .station-col {
+    background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 14px 15px; min-width: 240px; max-width: 300px; flex: 1 1 240px;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .station-col-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .station-name { font-family: var(--font-display); font-weight: 700; font-size: 17px; }
+  .station-count { font-family: var(--font-mono); color: var(--text-mid); font-size: 12.5px; }
+  .pipeline-arrow { display: flex; align-items: center; justify-content: center; color: var(--text-low); font-size: 24px; flex: 0 0 18px; }
+
+  .order-chip { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 9px 11px; }
+  .order-chip.is-first { border-color: var(--amber); background: linear-gradient(90deg, rgba(255,138,43,0.08), var(--bg-2) 40%); }
+  .order-chip .top-row { display: flex; align-items: flex-start; gap: 8px; }
+  .order-chip .prio { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: var(--text-low); min-width: 16px; }
+  .order-chip.is-first .prio { color: var(--amber); }
+  .order-chip .num { font-family: var(--font-mono); font-weight: 700; font-size: 14px; flex: 1; word-break: break-word; white-space: normal; }
+  .order-chip .time { font-family: var(--font-mono); color: var(--text-mid); font-size: 11px; white-space: nowrap; }
+  .order-chip .note {
+    font-size: 12px; color: var(--text-mid); margin-top: 6px; white-space: normal; word-break: break-word;
+    border-top: 1px dashed var(--line); padding-top: 6px;
+  }
+  .station-empty { color: var(--text-low); font-size: 12.5px; text-align: center; padding: 14px 0; }
+
+  .recent-block { margin-top: 4px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .recent-title { font-size: 10px; color: var(--text-low); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .recent-item { font-size: 11.5px; color: var(--text-low); display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+  .recent-item b { color: var(--text-mid); font-family: var(--font-mono); font-weight: 600; }
+
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--text-low); gap: 10px; padding: 60px 0;
+  }
+  .empty-state .big { font-family: var(--font-display); font-size: 34px; color: var(--text-mid); }
+
+  .complaints-strip {
+    margin-top: 16px; background: var(--red-dim); border: 1px solid var(--red);
+    border-radius: var(--radius-lg); padding: 10px 20px; display: none;
+  }
+  .complaints-strip.show { display: block; }
+  .complaints-strip .label {
+    font-family: var(--font-display); font-weight: 800; color: var(--red); font-size: 13px;
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;
+  }
+  .complaint-chip {
+    display: inline-block; background: var(--bg-1); border: 1px solid var(--line);
+    border-radius: 999px; padding: 5px 14px; margin: 0 8px 4px 0; font-size: 12.5px; color: var(--text-hi);
+  }
+  .complaint-chip b { color: var(--amber); font-weight: 700; }
+
+  footer { padding: 10px 40px 16px; display: flex; justify-content: space-between; color: var(--text-low); font-size: 11.5px; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-mark">Z</div>
+      <div>
+        <div class="brand-title" id="brand-title">ZAKAZLAR — JONLI EKRAN</div>
+        <div class="brand-sub" id="day-status">Kun boshlanmagan</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <a class="channel-badge" href="/tv" id="back-to-channels" style="display:none">← Kanallar</a>
+      <button class="theme-toggle" id="theme-toggle">☾ Qorong'i / ☀ Yorug'</button>
+      <div class="clock-wrap">
+        <div id="clock">--:--:--</div>
+        <div id="date"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat c-blue"><b id="s-active">0</b><span>Faol zakaz</span></div>
+    <div class="stat c-green"><b id="s-done">0</b><span>Yakunlangan</span></div>
+    <div class="stat"><b id="s-lines">0</b><span>Liniyalar</span></div>
+    <div class="stat c-red"><b id="s-complaints">0</b><span>Ochiq shikoyat</span></div>
+  </div>
+
+  <main>
+    <div id="channel-view" style="display:none">
+      <div class="channel-hint">Kanalni tanlang — har biri alohida TV'ga mo'ljallangan</div>
+      <div class="channel-grid" id="channel-grid"></div>
+    </div>
+
+    <div id="board-view" style="display:none"></div>
+
+    <div class="empty-state" id="empty" style="display:none">
+      <div class="big">Bu kanalda faol zakaz yo'q</div>
+    </div>
+
+    <div class="complaints-strip" id="complaints-strip">
+      <div class="label">⚠ Ochiq shikoyatlar</div>
+      <div id="complaints-chips"></div>
+    </div>
+  </main>
+
+  <footer>
+    <span>Zakaz Tracker</span>
+    <span id="conn-status">Ulanmoqda...</span>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // ---- Detect channel/group from URL path ----
+    const pathParts = window.location.pathname.split('/').filter(Boolean); // ['tv'] or ['tv','korpus']
+    const currentGroup = pathParts.length > 1 ? decodeURIComponent(pathParts[1]) : null;
+
+    // ---- Theme ----
+    const savedTheme = localStorage.getItem('tv-theme') || 'dark';
+    if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('tv-theme', 'dark'); }
+      else { document.documentElement.setAttribute('data-theme', 'light'); localStorage.setItem('tv-theme', 'light'); }
+    });
+
+    function tick() {
+      const d = new Date();
+      document.getElementById('clock').textContent = d.toLocaleTimeString('uz-UZ', { hour12: false });
+      document.getElementById('date').textContent = d.toLocaleDateString('uz-UZ', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+    tick(); setInterval(tick, 1000);
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    if (currentGroup) {
+      document.getElementById('brand-title').textContent = `ZAKAZLAR — ${currentGroup.toUpperCase()}`;
+      document.getElementById('back-to-channels').style.display = 'inline-block';
+    }
+
+    function renderChannels(state) {
+      const groups = [...new Set(state.lines.map(l => l.group))];
+      const grid = document.getElementById('channel-grid');
+      grid.innerHTML = groups.map(g => {
+        const groupLines = state.lines.filter(l => l.group === g);
+        const groupLineIds = groupLines.map(l => l.id);
+        const count = state.orders.filter(o => !o.done && groupLineIds.includes(o.lineId)).length;
+        return `
+          <a class="channel-tile" href="/tv/${encodeURIComponent(g)}">
+            <div class="name">${escapeHtml(g)}</div>
+            <div class="count">${count} ta faol zakaz</div>
+          </a>
+        `;
+      }).join('');
+    }
+
+    function renderBoard(state) {
+      const groupLines = state.lines.filter(l => l.group === currentGroup);
+      const boardEl = document.getElementById('board-view');
+      const emptyEl = document.getElementById('empty');
+
+      const anyActive = state.orders.some(o => !o.done && groupLines.find(l => l.id === o.lineId));
+      if (!anyActive) {
+        boardEl.innerHTML = '';
+        emptyEl.style.display = 'flex';
+        return;
+      }
+      emptyEl.style.display = 'none';
+
+      // Build a flat list of "recently completed" entries per stationId across ALL orders
+      const recentByStation = {};
+      state.orders.forEach(o => {
+        (o.completedStations || []).forEach(cs => {
+          if (!cs.stationId) return;
+          if (!recentByStation[cs.stationId]) recentByStation[cs.stationId] = [];
+          recentByStation[cs.stationId].push(cs);
+        });
+      });
+      Object.keys(recentByStation).forEach(k => recentByStation[k].sort((a, b) => b.at - a.at));
+
+      boardEl.innerHTML = groupLines.map(line => {
+        const lineOrders = state.orders.filter(o => !o.done && o.lineId === line.id);
+        const stationsHtml = line.stations.map((st, idx) => {
+          const bucket = lineOrders.filter(o => o.stationIndex === idx).sort((a, b) => a.priority - b.priority);
+          const recents = (recentByStation[st.id] || []).slice(0, 3);
+          return `
+            <div class="station-col">
+              <div class="station-col-head">
+                <div class="station-name">${escapeHtml(st.name)}</div>
+                <div class="station-count">${bucket.length} ta</div>
+              </div>
+              ${bucket.length ? bucket.map((o, i) => `
+                <div class="order-chip ${i === 0 ? 'is-first' : ''}">
+                  <div class="top-row">
+                    <div class="prio">${i + 1}</div>
+                    <div class="num">#${escapeHtml(o.orderNumber)}</div>
+                    ${o.time ? `<div class="time">${escapeHtml(o.time)}</div>` : ''}
+                  </div>
+                  ${o.note ? `<div class="note">${escapeHtml(o.note)}</div>` : ''}
+                </div>
+              `).join('') : '<div class="station-empty">Bo\'sh</div>'}
+              ${recents.length ? `
+                <div class="recent-block">
+                  <div class="recent-title">So'nggi tayyor bo'lganlar</div>
+                  ${recents.map(r => `<div class="recent-item"><b>#${escapeHtml(r.orderNumber)}</b><span>${new Date(r.at).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</span></div>`).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('<div class="pipeline-arrow">→</div>');
+
+        const nextLine = line.nextLineId ? state.lines.find(l => l.id === line.nextLineId) : null;
+
+        return `
+          <div class="pipeline-section">
+            <div class="pipeline-title">${escapeHtml(line.name)} ${nextLine ? `<span class="arrow-to">→ ${escapeHtml(nextLine.name)}ga jo'natiladi</span>` : ''}</div>
+            <div class="pipeline-row">${stationsHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function render(state) {
+      const groupLineIds = currentGroup ? state.lines.filter(l => l.group === currentGroup).map(l => l.id) : state.lines.map(l => l.id);
+      const relevantOrders = state.orders.filter(o => groupLineIds.includes(o.lineId));
+
+      document.getElementById('s-active').textContent = relevantOrders.filter(o => !o.done).length;
+      document.getElementById('s-done').textContent = relevantOrders.filter(o => o.done).length;
+      document.getElementById('s-lines').textContent = currentGroup ? state.lines.filter(l => l.group === currentGroup).length : state.lines.length;
+      document.getElementById('s-complaints').textContent = state.stats.openComplaints || 0;
+      document.getElementById('day-status').textContent = state.dayStarted ? 'Kun boshlangan — jonli yangilanmoqda' : 'Kun boshlanmagan';
+
+      if (!currentGroup) {
+        document.getElementById('channel-view').style.display = 'block';
+        document.getElementById('board-view').style.display = 'none';
+        document.getElementById('empty').style.display = 'none';
+        renderChannels(state);
+      } else {
+        document.getElementById('channel-view').style.display = 'none';
+        document.getElementById('board-view').style.display = 'block';
+        renderBoard(state);
+      }
+
+      const openComplaints = (state.complaints || []).filter(c => c.status === 'ochiq');
+      const stripEl = document.getElementById('complaints-strip');
+      if (openComplaints.length) {
+        stripEl.classList.add('show');
+        document.getElementById('complaints-chips').innerHTML = openComplaints.slice(0, 12).map(c =>
+          `<span class="complaint-chip"><b>${escapeHtml(c.userName)}:</b> ${escapeHtml(c.text)}</span>`
+        ).join('');
+      } else {
+        stripEl.classList.remove('show');
+      }
+    }
+
+    const socket = io();
+    socket.on('connect', () => document.getElementById('conn-status').textContent = 'Ulandi');
+    socket.on('disconnect', () => document.getElementById('conn-status').textContent = "Aloqa uzildi — qayta ulanmoqda...");
+    socket.on('state', render);
+
+    setInterval(() => { fetch('/api/state').then(r => r.json()).then(render).catch(() => {}); }, 8000);
+  </script>
+</body>
+</html>

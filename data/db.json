@@ -1,0 +1,73 @@
+{
+  "users": [
+    {
+      "id": "w-h8u_PV",
+      "username": "admin",
+      "passwordHash": "$2a$08$3s16Pf3Hbl1B1.Zw3Alwf.LsaJhECYEclNCQCjwNH8.B08vG4kTTy",
+      "name": "Bosh Admin",
+      "role": "admin",
+      "stationAccess": [],
+      "createdAt": 1787028500535
+    }
+  ],
+  "lines": [
+    {
+      "id": "ddOPp7y7",
+      "name": "Korpus",
+      "group": "korpus",
+      "stations": [
+        {
+          "id": "3Fkjlq00",
+          "name": "Ara"
+        },
+        {
+          "id": "3RMrxRXA",
+          "name": "Kromka"
+        },
+        {
+          "id": "GGbleHq5",
+          "name": "Prisadka"
+        },
+        {
+          "id": "nMYQPjF1",
+          "name": "Upakovka"
+        }
+      ],
+      "nextLineId": "KIs_vDnl",
+      "replenish": true,
+      "createdAt": 1787028500506
+    },
+    {
+      "id": "lmL3GSAQ",
+      "name": "Fasad",
+      "group": "fasad",
+      "stations": [
+        {
+          "id": "aauvYcmt",
+          "name": "Ishlov berish"
+        }
+      ],
+      "nextLineId": "KIs_vDnl",
+      "replenish": false,
+      "createdAt": 1787028500506
+    },
+    {
+      "id": "KIs_vDnl",
+      "name": "Labo",
+      "group": "labo",
+      "stations": [
+        {
+          "id": "DRX2ENhu",
+          "name": "Yuklash"
+        }
+      ],
+      "nextLineId": null,
+      "replenish": false,
+      "createdAt": 1787028500506
+    }
+  ],
+  "orders": [],
+  "complaints": [],
+  "dayStarted": false,
+  "dayStartedAt": null
+}
