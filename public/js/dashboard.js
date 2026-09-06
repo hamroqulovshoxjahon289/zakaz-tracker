@@ -36,12 +36,15 @@ async function init() {
     if (me.role === 'admin') {
       document.getElementById('tab-users-btn').style.display = '';
       document.getElementById('tab-lines-btn').style.display = '';
+      document.getElementById('tab-report-btn').style.display = '';
+      document.getElementById('tab-audit-btn').style.display = '';
       loadUsers();
     }
     if (meRes.impersonating) document.getElementById('impersonate-banner').style.display = 'block';
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('app').classList.add('ready');
     connectSocket();
+    loadNotifications();
   } catch (e) {
     window.location.href = '/login';
   }
@@ -50,17 +53,27 @@ async function init() {
 function connectSocket() {
   const socket = io();
   socket.on('state', (s) => { state = s; renderAll(); });
+  socket.on('notification', (n) => {
+    playNotifSound();
+    toast(`🔔 ${n.title}`);
+    prependNotification(n);
+  });
+  setInterval(renderOrders, 60000); // muddati o'tgan zakazlar belgisini yangilab turish
 }
 
 function renderAll() {
   renderDayBar();
   renderTvLinks();
   renderOrderFormLineOptions();
+  renderCustomerOptions();
+  renderTemplatePicker();
   renderLineFilters();
   renderOrders();
   renderLines();
   renderComplaints();
   renderNewUserStations();
+  renderCustomers();
+  renderTemplates();
 }
 
 // ---------- Day control ----------
@@ -116,11 +129,107 @@ document.getElementById('order-form').addEventListener('submit', async (e) => {
         orderNumber,
         time: form.time.value.trim(),
         note: form.note.value.trim(),
-        lineId: form.lineId.value
+        lineId: form.lineId.value,
+        customerId: form.customerId.value || null,
+        urgent: form.urgent.checked
       })
     });
-    form.orderNumber.value = ''; form.time.value = ''; form.note.value = '';
+    form.orderNumber.value = ''; form.time.value = ''; form.note.value = ''; form.urgent.checked = false;
+    document.getElementById('template-picker').value = '';
     toast("Zakaz qo'shildi");
+  } catch (e) { toast(e.message, true); }
+});
+
+// ---------- Customers (Mijozlar) ----------
+function renderCustomerOptions() {
+  const sel = document.getElementById('order-form-customer');
+  const current = sel.value;
+  sel.innerHTML = `<option value="">Mijoz yo'q</option>` + (state.customers || []).map(c =>
+    `<option value="${c.id}">${escapeHtml(c.name)}${c.phone ? ' — ' + escapeHtml(c.phone) : ''}</option>`).join('');
+  if (current) sel.value = current;
+}
+
+function renderCustomers() {
+  const list = state.customers || [];
+  const el = document.getElementById('customers-list');
+  const emptyEl = document.getElementById('customers-empty');
+  if (!el) return;
+  if (!list.length) { el.innerHTML = ''; if (emptyEl) emptyEl.style.display = 'block'; return; }
+  if (emptyEl) emptyEl.style.display = 'none';
+  el.innerHTML = list.map(c => `
+    <div class="customer-row" data-id="${c.id}">
+      <div><b>${escapeHtml(c.name)}</b> ${c.phone ? `<span>· ${escapeHtml(c.phone)}</span>` : ''} ${c.note ? `<span>· ${escapeHtml(c.note)}</span>` : ''}</div>
+      <button class="btn danger small" data-action="del-customer">O'chirish</button>
+    </div>
+  `).join('');
+  el.querySelectorAll('[data-action="del-customer"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.closest('.customer-row').dataset.id;
+      if (!confirm("Bu mijozni o'chirasizmi?")) return;
+      try { await api(`/api/customers/${id}`, { method: 'DELETE' }); toast("Mijoz o'chirildi"); }
+      catch (e) { toast(e.message, true); }
+    });
+  });
+}
+
+document.getElementById('new-customer-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  try {
+    await api('/api/customers', {
+      method: 'POST',
+      body: JSON.stringify({ name: form.name.value.trim(), phone: form.phone.value.trim(), note: form.note.value.trim() })
+    });
+    form.reset();
+    toast("Mijoz qo'shildi");
+  } catch (e) { toast(e.message, true); }
+});
+
+// ---------- Order Templates (Shablonlar) ----------
+function renderTemplatePicker() {
+  const sel = document.getElementById('template-picker');
+  sel.innerHTML = `<option value="">— Shablondan tanlash (ixtiyoriy) —</option>` + (state.templates || []).map(t =>
+    `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+}
+
+document.getElementById('template-picker').addEventListener('change', (e) => {
+  const t = (state.templates || []).find(x => x.id === e.target.value);
+  if (!t) return;
+  const form = document.getElementById('order-form');
+  form.note.value = t.note || '';
+  if (t.lineId) form.lineId.value = t.lineId;
+});
+
+function renderTemplates() {
+  const list = state.templates || [];
+  const el = document.getElementById('templates-list');
+  if (!el) return;
+  el.innerHTML = list.map(t => `
+    <div class="template-item" data-id="${t.id}">
+      <div><b>${escapeHtml(t.name)}</b> ${t.note ? `<span>— ${escapeHtml(t.note)}</span>` : ''}</div>
+      <button class="btn danger small" data-action="del-template">O'chirish</button>
+    </div>
+  `).join('') || '<div class="empty-hint">Hali shablon yo\'q</div>';
+  el.querySelectorAll('[data-action="del-template"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.closest('.template-item').dataset.id;
+      if (!confirm("Bu shablonni o'chirasizmi?")) return;
+      try { await api(`/api/templates/${id}`, { method: 'DELETE' }); toast("Shablon o'chirildi"); }
+      catch (e) { toast(e.message, true); }
+    });
+  });
+}
+
+document.getElementById('new-template-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  try {
+    await api('/api/templates', {
+      method: 'POST',
+      body: JSON.stringify({ name: form.name.value.trim(), note: form.note.value.trim() })
+    });
+    form.reset();
+    toast('Shablon saqlandi');
   } catch (e) { toast(e.message, true); }
 });
 
@@ -152,11 +261,14 @@ function moveTargetOptions(order) {
   return html;
 }
 
+const OVERDUE_MS = 2 * 60 * 60 * 1000; // 2 soat
+
 function renderOrders() {
   const container = document.getElementById('orders-container');
   const emptyEl = document.getElementById('orders-empty');
   const active = state.orders.filter(o => !o.done);
   const linesToShow = activeLineFilter === 'all' ? state.lines : state.lines.filter(l => l.id === activeLineFilter);
+  const now = Date.now();
 
   const anyOrders = active.some(o => linesToShow.find(l => l.id === o.lineId));
   if (!anyOrders) {
@@ -178,12 +290,17 @@ function renderOrders() {
         return `
           <div class="station-block" data-line="${line.id}" data-station="${idx}">
             <div class="station-title">${escapeHtml(st.name)} <span class="count">(${bucket.length})</span></div>
-            ${bucket.map((o, i) => `
-              <div class="order-row" data-id="${o.id}">
+            ${bucket.map((o, i) => {
+              const age = now - (o.stationEnteredAt || o.createdAt || now);
+              const isOverdue = age > OVERDUE_MS;
+              return `
+              <div class="order-row ${isOverdue ? 'overdue' : ''}" data-id="${o.id}">
                 <div class="prio-num">${i + 1}</div>
                 <div class="order-fields">
                   <input class="num-input" data-field="orderNumber" value="${escapeHtml(o.orderNumber)}">
+                  ${o.urgent ? `<span class="urgent-tag">🔴 SHOSHILINCH</span>` : ''}
                   <textarea class="note-input" data-field="note" placeholder="Izoh...">${escapeHtml(o.note || '')}</textarea>
+                  ${isOverdue ? `<div class="overdue-badge">⚠ ${Math.floor(age / 3600000)} soatdan beri shu bosqichda</div>` : ''}
                 </div>
                 <div>
                   <div class="field-label">Vaqt</div>
@@ -199,12 +316,14 @@ function renderOrders() {
                 </div>
                 <div class="order-actions">
                   <button class="btn success small" data-action="advance">${advanceLabel}</button>
+                  <button class="btn small urgent-toggle-btn" data-action="toggle-urgent">${o.urgent ? '🔴 Shoshilinchni bekor qilish' : '🔴 Shoshilinch qilish'}</button>
                   <button class="btn small" data-action="up" title="Navbatda yuqoriga">▲</button>
                   <button class="btn small" data-action="down" title="Navbatda pastga">▼</button>
                   <button class="btn danger small" data-action="delete">O'chirish</button>
                 </div>
               </div>
-            `).join('')}
+            `;
+            }).join('')}
           </div>
         `;
       }).join('');
@@ -236,6 +355,10 @@ function bindOrderRowEvents() {
       updateOrder(id, { lineId, stationIndex: Number(stationIndex) });
     });
     row.querySelector('[data-action="advance"]').addEventListener('click', () => advanceOrder(id));
+    row.querySelector('[data-action="toggle-urgent"]').addEventListener('click', () => {
+      const order = state.orders.find(o => o.id === id);
+      updateOrder(id, { urgent: !(order && order.urgent) });
+    });
     row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteOrder(id));
     const upBtn = row.querySelector('[data-action="up"]');
     const downBtn = row.querySelector('[data-action="down"]');
@@ -542,6 +665,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById(`panel-${btn.dataset.tab}`).classList.add('active');
     if (btn.dataset.tab === 'users') loadUsers();
+    if (btn.dataset.tab === 'report') { loadReport(); loadBackups(); }
+    if (btn.dataset.tab === 'audit') loadAudit();
   });
 });
 
@@ -555,5 +680,162 @@ document.getElementById('stop-impersonate').addEventListener('click', async (e) 
   await api('/api/impersonate/stop', { method: 'POST' });
   window.location.reload();
 });
+
+// ---------- Personal Notifications ----------
+let notifState = { items: [], unread: 0 };
+let audioCtx = null;
+
+function playNotifSound() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+    [880, 1160].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, now + i * 0.14);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + i * 0.14 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.14 + 0.22);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(now + i * 0.14);
+      osc.stop(now + i * 0.14 + 0.25);
+    });
+  } catch (e) { /* audio not available */ }
+}
+
+async function loadNotifications() {
+  try {
+    const res = await api('/api/notifications');
+    notifState.items = res.notifications;
+    notifState.unread = res.unread;
+    renderNotifications();
+  } catch (e) { /* ignore */ }
+}
+
+function prependNotification(n) {
+  notifState.items.unshift(n);
+  notifState.unread += 1;
+  renderNotifications();
+}
+
+function renderNotifications() {
+  const badge = document.getElementById('notif-badge');
+  if (notifState.unread > 0) { badge.textContent = notifState.unread; badge.style.display = 'flex'; }
+  else { badge.style.display = 'none'; }
+
+  const listEl = document.getElementById('notif-list');
+  if (!notifState.items.length) {
+    listEl.innerHTML = '<div class="notif-empty">Bildirishnomalar yo\'q</div>';
+    return;
+  }
+  listEl.innerHTML = notifState.items.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" data-id="${n.id}">
+      <div class="t">${escapeHtml(n.title)}</div>
+      <div class="m">${escapeHtml(n.message)}</div>
+      <div class="time">${new Date(n.createdAt).toLocaleString('uz-UZ')}</div>
+      ${!n.read ? `<button class="btn small" data-action="mark-read">Ko'rdim</button>` : ''}
+    </div>
+  `).join('');
+  listEl.querySelectorAll('[data-action="mark-read"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const item = btn.closest('.notif-item');
+      const id = item.dataset.id;
+      const n = notifState.items.find(x => x.id === id);
+      if (n && !n.read) { n.read = true; notifState.unread = Math.max(0, notifState.unread - 1); }
+      renderNotifications();
+      try { await api(`/api/notifications/${id}/read`, { method: 'POST' }); } catch (e) {}
+    });
+  });
+}
+
+document.getElementById('notif-bell').addEventListener('click', () => {
+  const dd = document.getElementById('notif-dropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+});
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('notif-wrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('notif-dropdown').style.display = 'none';
+});
+document.getElementById('notif-read-all').addEventListener('click', async () => {
+  notifState.items.forEach(n => n.read = true);
+  notifState.unread = 0;
+  renderNotifications();
+  try { await api('/api/notifications/read-all', { method: 'POST' }); } catch (e) {}
+});
+
+// ---------- Report (admin) ----------
+async function loadReport() {
+  try {
+    const res = await api('/api/report');
+    document.getElementById('rep-completed').textContent = res.totalCompleted;
+    document.getElementById('rep-active').textContent = res.totalActive;
+    document.getElementById('rep-archived').textContent = res.totalArchived;
+
+    const maxCount = Math.max(1, ...res.dailyCounts.map(d => d.count));
+    document.getElementById('rep-chart').innerHTML = res.dailyCounts.map(d => `
+      <div class="bar-col">
+        <div class="bar-fill" style="height:${Math.round((d.count / maxCount) * 100)}%"></div>
+        <div class="bar-label">${d.count}</div>
+        <div class="bar-label">${d.date}</div>
+      </div>
+    `).join('');
+
+    const tbody = document.getElementById('rep-station-table');
+    tbody.innerHTML = res.stationReport.length ? res.stationReport.map(s => `
+      <tr>
+        <td>${escapeHtml(s.lineName)}</td>
+        <td>${escapeHtml(s.stationName)}</td>
+        <td>${s.count}</td>
+        <td>${s.avgMinutes} daqiqa</td>
+      </tr>
+    `).join('') : '<tr><td colspan="4" style="text-align:center; color:var(--text-low);">Hali ma\'lumot yo\'q</td></tr>';
+  } catch (e) { toast(e.message, true); }
+}
+
+// ---------- Backups (Zaxira nusxa) ----------
+async function loadBackups() {
+  try {
+    const res = await api('/api/backups');
+    const el = document.getElementById('backups-list');
+    if (!el) return;
+    if (!res.backups.length) {
+      el.innerHTML = '<div class="empty-hint">Hali zaxira nusxa yo\'q</div>';
+      return;
+    }
+    el.innerHTML = res.backups.map(b => `
+      <div class="backup-item">
+        <span>${escapeHtml(b.name)} — ${(b.size / 1024).toFixed(1)} KB — ${new Date(b.createdAt).toLocaleString('uz-UZ')}</span>
+        <a class="btn small" href="/api/backups/${encodeURIComponent(b.name)}/download">Yuklab olish</a>
+      </div>
+    `).join('');
+  } catch (e) { toast(e.message, true); }
+}
+
+document.getElementById('backup-now-btn').addEventListener('click', async () => {
+  try {
+    await api('/api/backups/create', { method: 'POST' });
+    toast('Zaxira nusxa olindi');
+    loadBackups();
+  } catch (e) { toast(e.message, true); }
+});
+
+// ---------- Audit log (Jurnal, admin) ----------
+async function loadAudit() {
+  try {
+    const res = await api('/api/audit');
+    const el = document.getElementById('audit-list');
+    if (!res.log.length) {
+      el.innerHTML = '<div class="empty-hint">Hali yozuv yo\'q</div>';
+      return;
+    }
+    el.innerHTML = res.log.map(l => `
+      <div class="audit-item">
+        <div><b>${escapeHtml(l.userName)}</b> — ${escapeHtml(l.action)} ${l.details ? `<span style="color:var(--text-mid)">(${escapeHtml(l.details)})</span>` : ''}</div>
+        <div class="a-meta">${new Date(l.createdAt).toLocaleString('uz-UZ')}</div>
+      </div>
+    `).join('');
+  } catch (e) { toast(e.message, true); }
+}
 
 init();

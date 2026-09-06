@@ -54,6 +54,11 @@ function defaultData() {
     lines: [korpusLine, fasadLine, laboLine],
     orders: [],
     complaints: [],
+    notifications: [],
+    archivedOrders: [],
+    customers: [],
+    templates: [],
+    auditLog: [],
     dayStarted: false,
     dayStartedAt: null
   };
@@ -63,6 +68,11 @@ function migrate(data) {
   let changed = false;
 
   if (!data.complaints) { data.complaints = []; changed = true; }
+  if (!data.notifications) { data.notifications = []; changed = true; }
+  if (!data.archivedOrders) { data.archivedOrders = []; changed = true; }
+  if (!data.customers) { data.customers = []; changed = true; }
+  if (!data.templates) { data.templates = []; changed = true; }
+  if (!data.auditLog) { data.auditLog = []; changed = true; }
 
   if (!data.lines) {
     // Eski (labo-asosidagi) formatdan yangi liniya tizimiga o'tish
@@ -98,6 +108,9 @@ function migrate(data) {
     if (o.done === undefined) { o.done = false; changed = true; }
     if (o.completedStations === undefined) { o.completedStations = []; changed = true; }
     if (o.parentOrderId === undefined) { o.parentOrderId = null; changed = true; }
+    if (o.stationEnteredAt === undefined) { o.stationEnteredAt = o.createdAt || Date.now(); changed = true; }
+    if (o.urgent === undefined) { o.urgent = false; changed = true; }
+    if (o.customerId === undefined) { o.customerId = null; changed = true; }
   });
 
   data.users.forEach(u => {

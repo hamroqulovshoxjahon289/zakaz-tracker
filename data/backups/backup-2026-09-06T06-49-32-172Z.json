@@ -1,0 +1,135 @@
+{
+  "users": [
+    {
+      "id": "iQZlCTVe",
+      "username": "admin",
+      "passwordHash": "$2a$08$yWN4GBo7rP4TMbgvkcy8MeDKAMN.acFolyBfLLIlGh4As9Byj1nre",
+      "name": "Bosh Admin",
+      "role": "admin",
+      "stationAccess": [],
+      "createdAt": 1788674365770
+    },
+    {
+      "id": "DbC9yveO",
+      "username": "samir",
+      "passwordHash": "$2a$08$gkOrKN1qAseOGv2jDzkGMuE4PE0TnvwTNi8pDhJkrdiFWHcPrQmOq",
+      "name": "samir",
+      "role": "xodim",
+      "stationAccess": [
+        "Ydrwm5Z3"
+      ],
+      "createdAt": 1788677266583
+    }
+  ],
+  "lines": [
+    {
+      "id": "RcQmGjhX",
+      "name": "Korpus",
+      "group": "korpus",
+      "stations": [
+        {
+          "id": "ackHKV2r",
+          "name": "Ara"
+        },
+        {
+          "id": "Mg5voACo",
+          "name": "Kromka"
+        },
+        {
+          "id": "Xc6td2Yp",
+          "name": "Prisadka"
+        },
+        {
+          "id": "Ydrwm5Z3",
+          "name": "Upakovka"
+        }
+      ],
+      "nextLineId": "W6lRhK8c",
+      "replenish": true,
+      "createdAt": 1788674365738
+    },
+    {
+      "id": "uoe2oznA",
+      "name": "Fasad",
+      "group": "fasad",
+      "stations": [
+        {
+          "id": "CI0WkwZI",
+          "name": "Ishlov berish"
+        }
+      ],
+      "nextLineId": "W6lRhK8c",
+      "replenish": false,
+      "createdAt": 1788674365738
+    },
+    {
+      "id": "W6lRhK8c",
+      "name": "Labo",
+      "group": "labo",
+      "stations": [
+        {
+          "id": "yr3dpPFq",
+          "name": "Yuklash"
+        }
+      ],
+      "nextLineId": null,
+      "replenish": false,
+      "createdAt": 1788674365738
+    }
+  ],
+  "orders": [
+    {
+      "id": "fXEbVE0K",
+      "orderNumber": "chiko oq",
+      "time": "",
+      "note": "",
+      "lineId": "RcQmGjhX",
+      "stationIndex": 1,
+      "assignedUserId": null,
+      "customerId": null,
+      "urgent": true,
+      "done": false,
+      "parentOrderId": null,
+      "completedStations": [
+        {
+          "lineId": "RcQmGjhX",
+          "lineName": "Korpus",
+          "stationId": "ackHKV2r",
+          "stationName": "Ara",
+          "orderNumber": "chiko oq",
+          "durationMs": 2123873,
+          "at": 1788676514309
+        }
+      ],
+      "priority": 1,
+      "createdAt": 1788674390436,
+      "updatedAt": 1788676514309,
+      "stationEnteredAt": 1788676514309
+    }
+  ],
+  "complaints": [],
+  "notifications": [],
+  "archivedOrders": [],
+  "customers": [],
+  "templates": [],
+  "auditLog": [
+    {
+      "id": "Kasb_duv",
+      "userId": "iQZlCTVe",
+      "userName": "Bosh Admin",
+      "action": "Zakaz yaratdi",
+      "details": "#chiko oq — Korpus",
+      "createdAt": 1788674390436
+    },
+    {
+      "id": "xrZvKCUk",
+      "userId": "iQZlCTVe",
+      "userName": "Bosh Admin",
+      "action": "Yangi xodim qo'shdi",
+      "details": "samir (samir)",
+      "createdAt": 1788677266583
+    }
+  ],
+  "dayStarted": false,
+  "dayStartedAt": null
+}

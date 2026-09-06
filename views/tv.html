@@ -91,6 +91,17 @@
 
   .order-chip { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 9px 11px; }
   .order-chip.is-first { border-color: var(--amber); background: linear-gradient(90deg, rgba(255,138,43,0.08), var(--bg-2) 40%); }
+  .order-chip.overdue { border-color: var(--red); animation: tv-overdue-pulse 1.6s ease-in-out infinite; }
+  @keyframes tv-overdue-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,77,94,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(255,77,94,0.05); }
+  }
+  .overdue-tag { color: var(--red); font-size: 10.5px; font-weight: 700; margin-top: 5px; }
+  .order-chip.urgent { border-color: var(--red); box-shadow: 0 0 0 1px rgba(255,77,94,0.3); }
+  .urgent-chip-tag {
+    display: inline-block; background: var(--red-dim); color: var(--red); font-size: 10px; font-weight: 800;
+    padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; margin-top: 5px;
+  }
   .order-chip .top-row { display: flex; align-items: flex-start; gap: 8px; }
   .order-chip .prio { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: var(--text-low); min-width: 16px; }
   .order-chip.is-first .prio { color: var(--amber); }
@@ -141,6 +152,7 @@
       </div>
     </div>
     <div class="header-right">
+      <button class="theme-toggle" id="sound-toggle">🔇 Ovozni yoqish</button>
       <a class="channel-badge" href="/tv" id="back-to-channels" style="display:none">← Kanallar</a>
       <button class="theme-toggle" id="theme-toggle">☾ Qorong'i / ☀ Yorug'</button>
       <div class="clock-wrap">
@@ -227,10 +239,13 @@
       }).join('');
     }
 
+    const OVERDUE_MS = 2 * 60 * 60 * 1000; // 2 soat
+
     function renderBoard(state) {
       const groupLines = state.lines.filter(l => l.group === currentGroup);
       const boardEl = document.getElementById('board-view');
       const emptyEl = document.getElementById('empty');
+      const now = Date.now();
 
       const anyActive = state.orders.some(o => !o.done && groupLines.find(l => l.id === o.lineId));
       if (!anyActive) {
@@ -262,16 +277,22 @@
                 <div class="station-name">${escapeHtml(st.name)}</div>
                 <div class="station-count">${bucket.length} ta</div>
               </div>
-              ${bucket.length ? bucket.map((o, i) => `
-                <div class="order-chip ${i === 0 ? 'is-first' : ''}">
+              ${bucket.length ? bucket.map((o, i) => {
+                const age = now - (o.stationEnteredAt || o.createdAt || now);
+                const isOverdue = age > OVERDUE_MS;
+                return `
+                <div class="order-chip ${i === 0 ? 'is-first' : ''} ${isOverdue ? 'overdue' : ''} ${o.urgent ? 'urgent' : ''}">
                   <div class="top-row">
                     <div class="prio">${i + 1}</div>
                     <div class="num">#${escapeHtml(o.orderNumber)}</div>
                     ${o.time ? `<div class="time">${escapeHtml(o.time)}</div>` : ''}
                   </div>
+                  ${o.urgent ? `<div class="urgent-chip-tag">🔴 SHOSHILINCH</div>` : ''}
                   ${o.note ? `<div class="note">${escapeHtml(o.note)}</div>` : ''}
+                  ${isOverdue ? `<div class="overdue-tag">⚠ ${Math.floor(age / 3600000)} soatdan beri</div>` : ''}
                 </div>
-              `).join('') : '<div class="station-empty">Bo\'sh</div>'}
+              `;
+              }).join('') : '<div class="station-empty">Bo\'sh</div>'}
               ${recents.length ? `
                 <div class="recent-block">
                   <div class="recent-title">So'nggi tayyor bo'lganlar</div>
@@ -330,6 +351,62 @@
     socket.on('connect', () => document.getElementById('conn-status').textContent = 'Ulandi');
     socket.on('disconnect', () => document.getElementById('conn-status').textContent = "Aloqa uzildi — qayta ulanmoqda...");
     socket.on('state', render);
+
+    // ---- Sound / voice announcements ----
+    let soundEnabled = localStorage.getItem('tv-sound') === 'on';
+    let audioCtx = null;
+    const soundBtn = document.getElementById('sound-toggle');
+    function updateSoundBtn() {
+      soundBtn.textContent = soundEnabled ? '🔊 Ovoz yoqilgan' : '🔇 Ovozni yoqish';
+    }
+    updateSoundBtn();
+    soundBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('tv-sound', soundEnabled ? 'on' : 'off');
+      updateSoundBtn();
+      if (soundEnabled) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        playBeep();
+      }
+    });
+
+    function playBeep() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+        [660, 880].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.0001, now + i * 0.16);
+          gain.gain.exponentialRampToValueAtTime(0.22, now + i * 0.16 + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.16 + 0.28);
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(now + i * 0.16);
+          osc.stop(now + i * 0.16 + 0.3);
+        });
+      } catch (e) { /* audio unavailable */ }
+    }
+
+    function speak(text) {
+      if (!('speechSynthesis' in window)) return;
+      try {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'uz-UZ';
+        utter.rate = 0.95;
+        utter.pitch = 1;
+        window.speechSynthesis.speak(utter);
+      } catch (e) { /* tts unavailable */ }
+    }
+
+    socket.on('announcement', (a) => {
+      if (!soundEnabled) return;
+      // Faqat shu TV kanaliga tegishli bo'lsa e'lon qilinadi (yoki kanal tanlash sahifasida)
+      if (currentGroup && a.groups && a.groups.length && !a.groups.includes(currentGroup)) return;
+      playBeep();
+      setTimeout(() => speak(a.text), 500);
+    });
 
     setInterval(() => { fetch('/api/state').then(r => r.json()).then(render).catch(() => {}); }, 8000);
   </script>

@@ -136,7 +136,111 @@ Prisadka — barchasini belgilab qo'yish mumkin.
 TV ekranning yuqori o'ng burchagida **"☾ Qorong'i / ☀ Yorug'"** tugmasi bor.
 Tanlangan rejim shu qurilmada saqlanib qoladi.
 
-## 8. Foydalanuvchilar (login boshqaruvi)
+## 8. Bildirishnomalar (har bir xodim uchun shaxsiy xabar)
+
+- Har bir foydalanuvchi (admin panel ekranida, yuqori o'ng burchakda) 🔔
+  qo'ng'iroq belgisini ko'radi.
+- Zakaz kimningdir stansiyasiga tushganda (yoki unga to'g'ridan-to'g'ri
+  biriktirilganda), o'sha xodimning qo'ng'irog'ida **jonli, real vaqtda**
+  yangi xabar chiqadi va yumshoq ovozli signal eshitiladi.
+- Har bir xabar yonida **"Ko'rdim"** tugmasi bor — bosilgach xabar
+  "o'qilgan" deb belgilanadi.
+- **"Hammasini o'qildi qilish"** tugmasi orqali bir zumda barcha xabarlarni
+  tozalash mumkin.
+- Bu — ilova ichidagi (in-app) bildirishnoma, telefon raqamiga haqiqiy SMS
+  emas. Agar kelajakda haqiqiy SMS kerak bo'lsa (masalan Eskiz.uz orqali),
+  bu alohida sozlash va oylik xarajat talab qiladi.
+
+## 9. TV ekranda ovozli e'lonlar
+
+- TV sahifasining yuqori chap burchagida **"🔇 Ovozni yoqish"** tugmasi bor.
+  Brauzerlar avtomatik ovoz chiqarishni bloklagani uchun, TV ochilgach bir
+  marta shu tugmani bosish kerak (keyin u "🔊 Ovoz yoqilgan" holatda qoladi
+  va qurilmada eslab qolinadi).
+- Zakaz bir bosqichdan ikkinchisiga o'tganda, TV **beep** ovozi va undan
+  keyin **ovozli o'qish** ("Shkaf-99: Aradan Kromkaga o'tdi" kabi) orqali
+  e'lon qiladi.
+- E'lon faqat tegishli TV kanalida eshitiladi — masalan Ara→Kromka o'tishi
+  haqidagi xabar `/tv/korpus` kanalida eshitiladi, `/tv/fasad` kanalida
+  eshitilmaydi.
+- **Eslatma:** brauzerning o'zbek tilidagi ovozi odatda mavjud emas, shuning
+  uchun matn standart (ingliz/rus) ovozda o'qiladi — talaffuz mukammal
+  bo'lmasligi mumkin, lekin matn tushunarli bo'ladi.
+
+## 10. Muddati o'tgan zakazlar (qizil ogohlantirish)
+
+Agar biror zakaz bitta stansiyada **2 soatdan ortiq** turib qolsa, u avtomatik
+ravishda qizil rangda, pulsatsiya qiluvchi chegara bilan ajratiladi — ham
+admin panelda, ham TV ekranda. Bu vaqt chegarasi kodda
+(`server.js` va `public/js/dashboard.js` / `views/tv.html` fayllarida
+`OVERDUE_MS`) o'zgartirilishi mumkin.
+
+## 11. Hisobot (admin uchun)
+
+"Hisobot" bo'limida:
+- Jami yakunlangan, hozir faol va arxivlangan zakazlar soni
+- Oxirgi 14 kunlik yakunlangan zakazlar grafigi
+- Har bir stansiyada o'rtacha qancha vaqt (daqiqada) ketganini ko'rsatuvchi
+  jadval — bu qaysi bosqich sekinroq ishlayotganini aniqlashga yordam beradi
+
+## 12. Zakaz tarixi (arxiv)
+
+Oldin "Kunni yakunlash" bosilganda barcha zakazlar butunlay o'chib ketardi.
+Endi ular **arxivga** ko'chiriladi (`data/db.json` faylidagi
+`archivedOrders`), shuning uchun "Hisobot" bo'limidagi statistikalar
+o'tgan kunlarni ham hisobga oladi.
+
+## 13. Shoshilinch zakazlar 🔴
+
+Zakaz kiritish formasida yoki har bir zakaz qatorida **"🔴 Shoshilinch"**
+belgisini yoqish mumkin. Shoshilinch zakaz:
+- Admin panelda qizil "SHOSHILINCH" yorlig'i bilan ajratiladi
+- TV ekranda ham qizil chegara va yorliq bilan ko'rinadi
+- Istalgan vaqt oddiy holatga qaytarilishi mumkin
+
+## 14. Mijozlar bazasi
+
+"Mijozlar" bo'limida har bir mijozning ismi, telefon raqami va izohini
+saqlash mumkin. Zakaz kiritishda "Mijoz" tanlovidan tanlab, o'sha zakazni
+mijozga bog'lash mumkin — kelajakda qaysi mijoz nechta buyurtma bergani
+kerak bo'lsa, shu yerdan boshlanadi.
+
+## 15. Buyurtma shablonlari
+
+Tez-tez takrorlanadigan zakaz turlarini (masalan "Standart shkaf 2x1.8")
+shablon qilib saqlash mumkin. Keyingi safar zakaz kiritishda yuqoridagi
+"Shablondan tanlash" ro'yxatidan tanlasangiz, izoh va liniya maydonlari
+avtomatik to'ldiriladi — faqat zakaz raqamini yozib, "Qo'shish" bossangiz
+bo'ldi.
+
+## 16. Amallar jurnali (Jurnal)
+
+Admin uchun "Jurnal" bo'limida — kim, qachon, qanday amal bajarganini
+(zakaz yaratish/tahrirlash/o'chirish, xodim qo'shish, liniya yaratish,
+shikoyatni hal qilish va h.k.) ko'rsatuvchi tarix. Oxirgi 300 ta yozuv
+saqlanadi.
+
+## 17. Avtomatik zaxira nusxa (backup)
+
+- Ma'lumotlar bazasidan **har 30 daqiqada** avtomatik zaxira nusxa
+  olinadi, shuningdek server har safar ishga tushganda ham.
+- Oxirgi **30 ta** zaxira nusxa saqlanadi (eskilari avtomatik o'chadi).
+- "Hisobot" bo'limida barcha zaxiralar ro'yxati va "Yuklab olish" havolasi
+  bor, shuningdek **"Hozir zaxira olish"** tugmasi bilan istalgan vaqtda
+  qo'lda zaxira olish mumkin.
+- **Tiklash (restore):** agar ma'lumotlar buzilib qolsa, kerakli
+  zaxira faylini yuklab oling va uni `data/db.json` nomiga o'zgartirib,
+  serverni to'xtatib qayta ishga tushiring.
+
+## 18. Excel'ga eksport
+
+"Hisobot" bo'limida ikkita tugma bor:
+- **"Zakazlar (Excel)"** — barcha (faol + arxivlangan) zakazlar ro'yxatini
+  `.xlsx` fayl qilib yuklab beradi
+- **"Hisobot (Excel)"** — stansiyalar bo'yicha statistikani va umumiy
+  ko'rsatkichlarni `.xlsx` fayl qilib yuklab beradi
+
+## 19. Foydalanuvchilar (login boshqaruvi)
 
 - Faqat **admin** yangi xodim qo'sha oladi.
 - Admin xohlagan xodimning **"Uning nomidan kirish"** tugmasi orqali uning
@@ -144,9 +248,10 @@ Tanlangan rejim shu qurilmada saqlanib qoladi.
 - Admin har qanday foydalanuvchining parolini almashtira yoki uni o'chira
   oladi.
 
-## 9. Texnik ma'lumot
+## 20. Texnik ma'lumot
 
 - Backend: Node.js + Express + Socket.io (jonli yangilanish uchun)
-- Ma'lumotlar: `data/db.json` faylida saqlanadi
-- Zaxira nusxa olish uchun `data/db.json` faylini nusxalab qo'ying
+- Excel eksport: ExcelJS kutubxonasi
+- Ma'lumotlar: `data/db.json` faylida saqlanadi, zaxiralar
+  `data/backups/` papkasida
 - Portni o'zgartirish: `PORT=4000 npm start`

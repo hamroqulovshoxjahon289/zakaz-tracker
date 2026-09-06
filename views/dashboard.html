@@ -36,8 +36,42 @@
   .btn.small { padding: 6px 10px; font-size: 12px; }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .impersonate-banner {
-    background: var(--amber-dim); color: var(--amber); text-align: center;
+  .notif-wrap { position: relative; }
+  .notif-bell { position: relative; font-size: 17px; padding: 8px 12px; }
+  .notif-badge {
+    position: absolute; top: -4px; right: -4px; background: var(--red); color: #2a0007;
+    font-size: 10px; font-weight: 800; min-width: 16px; height: 16px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center; padding: 0 3px;
+  }
+  .notif-dropdown {
+    position: absolute; top: calc(100% + 8px); right: 0; width: 340px; max-height: 420px;
+    background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lift); z-index: 50; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .notif-dropdown-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 700; }
+  .notif-list { overflow-y: auto; max-height: 360px; }
+  .notif-item { padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .notif-item.unread { background: var(--bg-2); }
+  .notif-item .t { font-weight: 700; margin-bottom: 3px; }
+  .notif-item .m { color: var(--text-mid); margin-bottom: 6px; }
+  .notif-item .time { color: var(--text-low); font-size: 11px; }
+  .notif-item button { margin-top: 6px; }
+  .notif-empty { padding: 24px 14px; text-align: center; color: var(--text-low); font-size: 13px; }
+
+  .report-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+  @media (max-width: 800px) { .report-grid { grid-template-columns: 1fr; } }
+  .report-stat { background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px 20px; }
+  .report-stat b { font-family: var(--font-display); font-size: 32px; font-weight: 800; display: block; }
+  .report-stat span { color: var(--text-mid); font-size: 13px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 140px; padding-top: 10px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; }
+  .bar-fill { width: 100%; background: linear-gradient(180deg, var(--amber), #ff5f2b); border-radius: 4px 4px 0 0; min-height: 2px; }
+  .bar-label { font-size: 10px; color: var(--text-low); }
+  .station-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .station-table th { text-align: left; color: var(--text-low); font-weight: 600; text-transform: uppercase; font-size: 11px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  .station-table td { padding: 10px; border-bottom: 1px solid var(--line); }
+
+  .impersonate-banner {    background: var(--amber-dim); color: var(--amber); text-align: center;
     padding: 8px; font-size: 13px; font-weight: 600; display: none;
   }
 
@@ -72,8 +106,13 @@
   .card + .card { margin-top: 18px; }
 
   /* ---- Order creation form ---- */
-  .order-form { display: grid; grid-template-columns: 1fr 1fr 1.2fr 140px auto; gap: 10px; margin-bottom: 10px; }
-  @media (max-width: 900px) { .order-form { grid-template-columns: 1fr; } }
+  .order-form { display: grid; grid-template-columns: 1fr 1fr 1.2fr 140px 160px auto auto; gap: 10px; margin-bottom: 10px; align-items: center; }
+  @media (max-width: 1100px) { .order-form { grid-template-columns: 1fr 1fr; } }
+  .urgent-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-mid); white-space: nowrap; }
+  .template-row { margin-bottom: 10px; }
+  .template-row select { width: 100%; max-width: 340px; padding: 9px 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--bg-2); color: var(--text-hi); font-size: 13px; }
+  .urgent-tag { display: inline-flex; align-self: flex-start; align-items: center; gap: 4px; background: var(--red-dim); color: var(--red); font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; margin-left: 0; }
+  .urgent-toggle-btn { background: var(--bg-1); }
   .order-form input, .order-form select {
     padding: 11px 12px; border-radius: var(--radius-md); border: 1px solid var(--line);
     background: var(--bg-2); color: var(--text-hi); font-size: 14px; outline: none;
@@ -101,6 +140,12 @@
     display: grid; grid-template-columns: 32px 1fr 130px 150px 150px auto auto; gap: 10px; align-items: start;
     background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px;
   }
+  .order-row.overdue { border-color: var(--red); animation: overdue-pulse 1.6s ease-in-out infinite; }
+  @keyframes overdue-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,77,94,0.25); }
+    50% { box-shadow: 0 0 0 5px rgba(255,77,94,0.05); }
+  }
+  .overdue-badge { color: var(--red); font-size: 11px; font-weight: 700; margin-top: 4px; }
   @media (max-width: 1000px) { .order-row { grid-template-columns: 1fr; } }
   .order-row .prio-num { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: var(--text-low); padding-top: 8px; text-align: center; }
   .order-fields { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
@@ -171,6 +216,18 @@
   .complaint-actions { display: flex; align-items: flex-start; gap: 8px; }
 
   /* ---- Users panel ---- */
+  .new-customer-form, .new-template-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 900px) { .new-customer-form, .new-template-form { grid-template-columns: 1fr; } }
+  .new-customer-form input, .new-template-form input { padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--bg-2); color: var(--text-hi); font-size: 14px; }
+  .customers-list, .templates-list, .audit-list, .backups-list { display: flex; flex-direction: column; gap: 8px; }
+  .customer-row, .template-item, .audit-item, .backup-item {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 11px 15px; font-size: 13px;
+  }
+  .customer-row b, .audit-item b { font-size: 14px; }
+  .customer-row span, .template-item span { color: var(--text-mid); }
+  .audit-item .a-meta { color: var(--text-low); font-size: 11.5px; }
+
   .users-list { display: flex; flex-direction: column; gap: 10px; }
   .user-row { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 16px; }
   .user-row-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
@@ -212,6 +269,16 @@
     <header class="top">
       <div class="brand"><div class="mark">Z</div><div class="brand-title">Zakaz Tracker</div></div>
       <div class="top-right">
+        <div class="notif-wrap" id="notif-wrap">
+          <button class="btn notif-bell" id="notif-bell">🔔<span class="notif-badge" id="notif-badge" style="display:none">0</span></button>
+          <div class="notif-dropdown" id="notif-dropdown" style="display:none">
+            <div class="notif-dropdown-head">
+              <span>Bildirishnomalar</span>
+              <button class="btn small ghost" id="notif-read-all">Hammasini o'qildi qilish</button>
+            </div>
+            <div class="notif-list" id="notif-list"></div>
+          </div>
+        </div>
         <div class="who"><b id="who-name">—</b><span id="who-role">—</span></div>
         <button class="btn" id="logout-btn">Chiqish</button>
       </div>
@@ -220,7 +287,10 @@
     <nav class="tabs">
       <button class="tab-btn active" data-tab="orders">Zakazlar</button>
       <button class="tab-btn" data-tab="lines" id="tab-lines-btn" style="display:none">Liniyalar</button>
+      <button class="tab-btn" data-tab="customers">Mijozlar</button>
       <button class="tab-btn" data-tab="complaints">Shikoyatlar <span class="tab-badge" id="complaints-badge" style="display:none">0</span></button>
+      <button class="tab-btn" data-tab="report" id="tab-report-btn" style="display:none">Hisobot</button>
+      <button class="tab-btn" data-tab="audit" id="tab-audit-btn" style="display:none">Jurnal</button>
       <button class="tab-btn" data-tab="users" id="tab-users-btn" style="display:none">Foydalanuvchilar</button>
     </nav>
 
@@ -239,11 +309,18 @@
 
         <div class="card">
           <h3>Yangi zakaz kiritish</h3>
+          <div class="template-row">
+            <select id="template-picker">
+              <option value="">— Shablondan tanlash (ixtiyoriy) —</option>
+            </select>
+          </div>
           <form class="order-form" id="order-form">
             <input name="orderNumber" placeholder="Zakaz raqami / model nomi" required>
             <input name="time" placeholder="Vaqt (masalan 14:30)">
             <input name="note" placeholder="Izoh (o'lcham, rang va h.k.)">
             <select name="lineId" id="order-form-line"></select>
+            <select name="customerId" id="order-form-customer"><option value="">Mijoz yo'q</option></select>
+            <label class="urgent-check"><input type="checkbox" name="urgent"> 🔴 Shoshilinch</label>
             <button type="submit" class="btn primary">Qo'shish</button>
           </form>
         </div>
@@ -281,6 +358,37 @@
         </div>
       </section>
 
+      <!-- CUSTOMERS PANEL -->
+      <section class="panel" id="panel-customers">
+        <div class="card">
+          <h3>Yangi mijoz qo'shish</h3>
+          <form class="new-customer-form" id="new-customer-form">
+            <input name="name" placeholder="Mijoz ismi" required>
+            <input name="phone" placeholder="Telefon raqami">
+            <input name="note" placeholder="Izoh (ixtiyoriy)">
+            <button type="submit" class="btn primary">Qo'shish</button>
+          </form>
+        </div>
+        <div class="card">
+          <h3>Mijozlar ro'yxati</h3>
+          <div class="customers-list" id="customers-list"></div>
+          <div class="empty-hint" id="customers-empty" style="display:none">Mijozlar yo'q</div>
+        </div>
+        <div class="card">
+          <h3>Buyurtma shablonlari</h3>
+          <p style="color:var(--text-mid); font-size:13px; margin-top:-8px;">
+            Tez-tez takrorlanadigan zakazni shablon qilib saqlang — keyingi safar
+            "Yangi zakaz kiritish" formasida shablondan tanlab, tezda to'ldirasiz.
+          </p>
+          <form class="new-template-form" id="new-template-form">
+            <input name="name" placeholder="Shablon nomi (masalan: Standart shkaf)" required>
+            <input name="note" placeholder="Izoh matni (avtomatik to'ldiriladi)">
+            <button type="submit" class="btn primary">Saqlash</button>
+          </form>
+          <div class="templates-list" id="templates-list"></div>
+        </div>
+      </section>
+
       <!-- COMPLAINTS PANEL -->
       <section class="panel" id="panel-complaints">
         <div class="card">
@@ -294,6 +402,52 @@
           <h3>Barcha shikoyatlar</h3>
           <div class="complaints-list" id="complaints-list"></div>
           <div class="empty-hint" id="complaints-empty" style="display:none">Shikoyatlar yo'q</div>
+        </div>
+      </section>
+
+      <!-- AUDIT LOG PANEL -->
+      <section class="panel" id="panel-audit">
+        <div class="card">
+          <h3>Amallar jurnali</h3>
+          <p style="color:var(--text-mid); font-size:13px; margin-top:-8px;">Kim, qachon, nima qilgani — oxirgi 300 ta amal.</p>
+          <div class="audit-list" id="audit-list"></div>
+        </div>
+      </section>
+
+      <!-- REPORT PANEL -->
+      <section class="panel" id="panel-report">
+        <div class="report-grid">
+          <div class="report-stat"><b id="rep-completed">0</b><span>Jami yakunlangan zakazlar</span></div>
+          <div class="report-stat"><b id="rep-active">0</b><span>Hozir faol zakazlar</span></div>
+          <div class="report-stat"><b id="rep-archived">0</b><span>Arxivlangan (o'tgan kunlar)</span></div>
+        </div>
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h3 style="margin:0;">Excel'ga yuklab olish</h3>
+            <div style="display:flex; gap:8px;">
+              <a class="btn" href="/api/export/orders.xlsx">📥 Zakazlar (Excel)</a>
+              <a class="btn" href="/api/export/report.xlsx">📥 Hisobot (Excel)</a>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Oxirgi 14 kun — yakunlangan zakazlar</h3>
+          <div class="bar-chart" id="rep-chart"></div>
+        </div>
+        <div class="card">
+          <h3>Stansiyalar bo'yicha o'rtacha vaqt</h3>
+          <table class="station-table">
+            <thead><tr><th>Liniya</th><th>Stansiya</th><th>Necha marta</th><th>O'rtacha vaqt</th></tr></thead>
+            <tbody id="rep-station-table"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h3 style="margin:0;">Zaxira nusxa (backup)</h3>
+            <button class="btn primary small" id="backup-now-btn">Hozir zaxira olish</button>
+          </div>
+          <p style="color:var(--text-mid); font-size:13px;">Har 30 daqiqada avtomatik zaxira olinadi. Oxirgi 30 tasi saqlanadi.</p>
+          <div class="backups-list" id="backups-list"></div>
         </div>
       </section>
 

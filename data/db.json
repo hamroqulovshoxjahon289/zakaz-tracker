@@ -1,73 +1,159 @@
 {
   "users": [
     {
-      "id": "w-h8u_PV",
+      "id": "iQZlCTVe",
       "username": "admin",
-      "passwordHash": "$2a$08$3s16Pf3Hbl1B1.Zw3Alwf.LsaJhECYEclNCQCjwNH8.B08vG4kTTy",
+      "passwordHash": "$2a$08$yWN4GBo7rP4TMbgvkcy8MeDKAMN.acFolyBfLLIlGh4As9Byj1nre",
       "name": "Bosh Admin",
       "role": "admin",
       "stationAccess": [],
-      "createdAt": 1787028500535
+      "createdAt": 1788674365770
+    },
+    {
+      "id": "DbC9yveO",
+      "username": "samir",
+      "passwordHash": "$2a$08$gkOrKN1qAseOGv2jDzkGMuE4PE0TnvwTNi8pDhJkrdiFWHcPrQmOq",
+      "name": "samir",
+      "role": "xodim",
+      "stationAccess": [
+        "Ydrwm5Z3"
+      ],
+      "createdAt": 1788677266583
     }
   ],
   "lines": [
     {
-      "id": "ddOPp7y7",
+      "id": "RcQmGjhX",
       "name": "Korpus",
       "group": "korpus",
       "stations": [
         {
-          "id": "3Fkjlq00",
+          "id": "ackHKV2r",
           "name": "Ara"
         },
         {
-          "id": "3RMrxRXA",
+          "id": "Mg5voACo",
           "name": "Kromka"
         },
         {
-          "id": "GGbleHq5",
+          "id": "Xc6td2Yp",
           "name": "Prisadka"
         },
         {
-          "id": "nMYQPjF1",
+          "id": "Ydrwm5Z3",
           "name": "Upakovka"
         }
       ],
-      "nextLineId": "KIs_vDnl",
+      "nextLineId": "W6lRhK8c",
       "replenish": true,
-      "createdAt": 1787028500506
+      "createdAt": 1788674365738
     },
     {
-      "id": "lmL3GSAQ",
+      "id": "uoe2oznA",
       "name": "Fasad",
       "group": "fasad",
       "stations": [
         {
-          "id": "aauvYcmt",
+          "id": "CI0WkwZI",
           "name": "Ishlov berish"
         }
       ],
-      "nextLineId": "KIs_vDnl",
+      "nextLineId": "W6lRhK8c",
       "replenish": false,
-      "createdAt": 1787028500506
+      "createdAt": 1788674365738
     },
     {
-      "id": "KIs_vDnl",
+      "id": "W6lRhK8c",
       "name": "Labo",
       "group": "labo",
       "stations": [
         {
-          "id": "DRX2ENhu",
+          "id": "yr3dpPFq",
           "name": "Yuklash"
         }
       ],
       "nextLineId": null,
       "replenish": false,
-      "createdAt": 1787028500506
+      "createdAt": 1788674365738
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "id": "fXEbVE0K",
+      "orderNumber": "chiko oq",
+      "time": "",
+      "note": "",
+      "lineId": "RcQmGjhX",
+      "stationIndex": 1,
+      "assignedUserId": null,
+      "customerId": null,
+      "urgent": true,
+      "done": false,
+      "parentOrderId": null,
+      "completedStations": [
+        {
+          "lineId": "RcQmGjhX",
+          "lineName": "Korpus",
+          "stationId": "ackHKV2r",
+          "stationName": "Ara",
+          "orderNumber": "chiko oq",
+          "durationMs": 2123873,
+          "at": 1788676514309
+        }
+      ],
+      "priority": 1,
+      "createdAt": 1788674390436,
+      "updatedAt": 1788676514309,
+      "stationEnteredAt": 1788676514309
+    }
+  ],
   "complaints": [],
+  "notifications": [],
+  "archivedOrders": [],
+  "customers": [
+    {
+      "id": "xqzJUWkd",
+      "name": "shorux",
+      "phone": "+998-97935-13-15",
+      "note": "срочни",
+      "createdAt": 1788677422455
+    }
+  ],
+  "templates": [
+    {
+      "id": "wyAxgDrz",
+      "name": "мия комплект",
+      "note": "",
+      "lineId": null,
+      "createdAt": 1788677500526
+    }
+  ],
+  "auditLog": [
+    {
+      "id": "Kasb_duv",
+      "userId": "iQZlCTVe",
+      "userName": "Bosh Admin",
+      "action": "Zakaz yaratdi",
+      "details": "#chiko oq — Korpus",
+      "createdAt": 1788674390436
+    },
+    {
+      "id": "xrZvKCUk",
+      "userId": "iQZlCTVe",
+      "userName": "Bosh Admin",
+      "action": "Yangi xodim qo'shdi",
+      "details": "samir (samir)",
+      "createdAt": 1788677266583
+    },
+    {
+      "id": "3JfnL9d7",
+      "userId": "iQZlCTVe",
+      "userName": "Bosh Admin",
+      "action": "Yangi mijoz qo'shdi",
+      "details": "shorux",
+      "createdAt": 1788677422455
+    }
+  ],
   "dayStarted": false,
   "dayStartedAt": null
 }
