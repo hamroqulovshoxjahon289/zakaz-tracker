@@ -3,8 +3,15 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { nanoid } = require('nanoid');
 
-const DATA_DIR = path.join(__dirname, 'data');
+const SEED_DIR = path.join(__dirname, 'data');
+const DATA_DIR = process.env.DATA_DIR || SEED_DIR;
 const FILE = path.join(DATA_DIR, 'db.json');
+
+fs.mkdirSync(DATA_DIR, { recursive: true });
+const SEED_FILE = path.join(SEED_DIR, 'db.json');
+if (DATA_DIR !== SEED_DIR && !fs.existsSync(FILE) && fs.existsSync(SEED_FILE)) {
+  fs.copyFileSync(SEED_FILE, FILE);
+}
 
 function makeStation(name) {
   return { id: nanoid(8), name };
