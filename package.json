@@ -1,17 +1,10 @@
 {
-  "name": "zakaz-tracker",
+  "name": "temurshox-mebel",
   "version": "1.0.0",
-  "description": "Zakazlarni boshqarish va TV monitoring tizimi",
+  "description": "Temurshox Mebel ishlab chiqarish nazorati",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "exceljs": "^4.4.0",
-    "express": "^4.19.2",
-    "express-session": "^1.18.0",
-    "nanoid": "^3.3.7",
-    "socket.io": "^4.7.5"
-  }
+  "license": "ISC"
 }
